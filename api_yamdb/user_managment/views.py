@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import UserSerializer
+from .serializers import AuthSerializer, UsersSerializer
 from .permisions import IsAdmin
 from reviews.models import User
 
@@ -13,7 +13,7 @@ class RegistrationView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = AuthSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
 
@@ -54,7 +54,7 @@ class UserCreateView(APIView):
     permission_classes = [IsAdmin]
 
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = UsersSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
