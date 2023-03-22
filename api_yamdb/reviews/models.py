@@ -19,6 +19,7 @@ ROLE_CHOICES = (
 # https://code.s3.yandex.net/backend-developer/learning-materials/custom_User_model.pdf
 # https://docs.djangoproject.com/en/3.2/ref/contrib/auth/#django.contrib.auth.models.User
 class User(AbstractUser):
+    """Модель пользователей."""
     # переопределяем, т.к. в стандартной модели поле email - optional
     email = models.EmailField(
         max_length=254,
@@ -38,8 +39,18 @@ class User(AbstractUser):
         verbose_name='Роль пользователя'
     )
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=~models.Q(username__exact='me'),
+                name="username shouldn't be 'me'"
+            )
+        ]
+
+
 
 class Category(models.Model):
+    """Модель категорий произведений."""
     name = models.CharField(
         max_length=256,
         verbose_name='Категория произведения'
@@ -52,6 +63,7 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
+    """Модель жанров произведений."""
     name = models.CharField(
         max_length=256,
         verbose_name='Жанр произведения'
@@ -64,6 +76,7 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
+    """Модель произведений."""
     name = models.CharField(
         max_length=256,
         verbose_name='Название произведения'
@@ -101,6 +114,7 @@ class Title(models.Model):
 
 
 class TitleGenre(models.Model):
+    """Модель связи произведений и жанров."""
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -114,6 +128,7 @@ class TitleGenre(models.Model):
 
 
 class Review(models.Model):
+    """Модель отзывов на произведения."""
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
@@ -139,6 +154,7 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
+    """Модель комментариев на отзывы."""
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
