@@ -1,3 +1,4 @@
+from datetime import timedelta
 from pathlib import Path
 
 
@@ -110,8 +111,6 @@ STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
 AUTH_USER_MODEL = 'reviews.User'
 
-AUTH_USER_MODEL = 'reviews.User'
-
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
@@ -120,6 +119,9 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+}
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=90)
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

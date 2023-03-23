@@ -1,11 +1,13 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from user_managment.views import UserDetail, UserList
 from api.views import (
     CategoryViewSet,
     GenreViewSet,
     TitleViewSet,
 )
+
 
 v1_router = DefaultRouter()
 v1_router.register(
@@ -39,4 +41,7 @@ v1_router.register(
 
 urlpatterns = [
     path('v1/', include(v1_router.urls)),
+    path('v1/auth/', include('user_managment.urls')),
+    path('v1/users/', UserList.as_view()),
+    path('v1/users/<slug:username>/', UserDetail.as_view()),
 ]

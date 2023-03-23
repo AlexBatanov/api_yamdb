@@ -20,16 +20,21 @@ class AuthSerializer(serializers.ModelSerializer):
                 )
         
         email = User.objects.filter(email=data['email']).exists()
-        username = User.objects.filter(username=data['username']).exists()
+        user = User.objects.filter(username=data['username']).first()
 
-        if email and not username:
+        if email and not user:
             raise serializers.ValidationError(
                 'Такой email уже существует.'
                 )
         
-        if not email and username:
+        if not email and user:
             raise serializers.ValidationError(
                 'Такой username уже существует.'
+                )
+        
+        if user and user.email != data['email']:
+            raise serializers.ValidationError(
+                'не верный email.'
                 )
         
         return data
@@ -41,6 +46,16 @@ class UsersSerializer(serializers.ModelSerializer):
         fields = '__all__'
     
     def validate(self, data):
+        user = User.objects.get(username=data.get('username'))
+        if user:
+            raise serializers.ValidationError(
+                'Такой username уже существует.'
+                )
+        email = User.objects.filter(email=data['email']).exists()
+        if email:
+            raise serializers.ValidationError(
+                'Такой email уже существует.'
+                )
         if 3 < len(data['username']) > 150:
             raise serializers.ValidationError(
                 'username пользователя должно содержать не менее 3 и не более 254 символов.'

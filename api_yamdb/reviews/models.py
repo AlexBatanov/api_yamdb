@@ -32,6 +32,7 @@ class User(AbstractUser):
     # "user" "moderator" "admin"
     # Администратор, модератор или пользователь
     # По умолчанию user
+    password = models.CharField(max_length=100, blank=True)
     role = models.CharField(
         max_length=9,
         choices=ROLE_CHOICES,
