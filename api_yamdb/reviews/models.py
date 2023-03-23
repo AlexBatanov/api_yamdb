@@ -48,7 +48,6 @@ class User(AbstractUser):
         ]
 
 
-
 class Category(models.Model):
     """Модель категорий произведений."""
     name = models.CharField(
@@ -86,12 +85,6 @@ class Title(models.Model):
         verbose_name='Год создания произведения',
         validators=[MaxValueValidator(timezone.now().year)]
     )
-    # Поле будет расчетное
-    rating = models.IntegerField(
-        verbose_name='Рейтинг произведения',
-        null=True,
-        blank=True
-    )
     description = models.TextField(
         verbose_name='Описание произведения',
         null=True,
@@ -109,6 +102,7 @@ class Title(models.Model):
         Category,
         on_delete=models.SET_NULL,
         verbose_name='Ссылка на категорию произведения',
+        related_name='titles',
         null=True
     )
 

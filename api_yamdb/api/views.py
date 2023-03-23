@@ -1,9 +1,14 @@
-from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+# https://docs.djangoproject.com/en/4.1/topics/db/aggregation/
+# https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.annotate
 
-from user_managment.permisions import IsOwnerIReadOnly, IsModerator, IsAdmin
-from .serializers import CommentSerializer, ReviewSerializer
-from reviews.models import Review, Title
+from django.shortcuts import get_object_or_404
+from rest_framework import filters, viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Avg
+
+from .serializers import CategorySerializer, GenreSerializer, TitleSerializer, CommentSerializer, ReviewSerializer
+from reviews.models import Category, Genre, Title, Review
+from user_managment.permisions import IsAdminOrReadOnly, IsOwnerIReadOnly, IsModerator, IsAdmin
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -36,3 +41,32 @@ class ReviewViewSet(viewsets.ModelViewSet):
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
         serializer.save(author=self.request.user, title=title)
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    """Вьюсет для категорий."""
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    filter_backends = (filters.SearchFilter)
+    search_fields = ('name',)
+    permission_classes = (IsAdminOrReadOnly,)
+
+
+class GenreViewSet(viewsets.ModelViewSet):
+    """Вьюсет для жанров."""
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    filter_backends = (filters.SearchFilter)
+    search_fields = ('name',)
+    permission_classes = (IsAdminOrReadOnly,)
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    """Вьюсет для произведений."""
+    queryset = Title.objects.all().annotate(
+        rating = Avg('reviews__score')
+    )
+    serializer_class = TitleSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    permission_classes = (IsAdminOrReadOnly,)
