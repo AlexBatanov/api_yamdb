@@ -1,4 +1,4 @@
-from rest_framework import serializers
+from rest_framework import serializers, status
 
 from reviews.models import User
 
@@ -18,6 +18,20 @@ class AuthSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'email электронной почты должен содержать не менее 5 и не более 254 символов.'
                 )
+        
+        email = User.objects.filter(email=data['email']).exists()
+        username = User.objects.filter(username=data['username']).exists()
+
+        if email and not username:
+            raise serializers.ValidationError(
+                'Такой email уже существует.'
+                )
+        
+        if not email and username:
+            raise serializers.ValidationError(
+                'Такой username уже существует.'
+                )
+        
         return data
     
 class UsersSerializer(serializers.ModelSerializer):
@@ -31,11 +45,11 @@ class UsersSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'username пользователя должно содержать не менее 3 и не более 254 символов.'
                 )
-        if 3 < len(data['first_name']) > 150:
+        if data.get('first_name') and 3 < len(data['first_name']) > 150:
             raise serializers.ValidationError(
                 'first_name пользователя должно содержать не менее 3 и не более 254 символов.'
                 )
-        if 3 < len(data['last_name']) > 150:
+        if data.get('last_name') and 3 < len(data['last_name']) > 150:
             raise serializers.ValidationError(
                 'last_name пользователя должно содержать не менее 3 и не более 254 символов.'
                 )
