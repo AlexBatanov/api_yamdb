@@ -14,6 +14,14 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
 
 
+class GenreSerializer(serializers.ModelSerializer):
+    """Сериализатор для жанров."""
+
+    class Meta:
+        fields = '__all__'
+        model = Genre
+
+
 class CommentSerializer(serializers.ModelSerializer):
     """Сериалайзер для комментариев."""
     author = SlugRelatedField(
