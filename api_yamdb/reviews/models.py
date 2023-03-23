@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from django.utils import timezone
+from datetime import datetime
 
 
 # https://practicum.yandex.ru/learn/python-developer-plus/courses/9527ae09-177e-42cc-95fa-cd6a94de2352/sprints/100933/topics/5ea1635f-38e3-46e4-a2f7-cf66e430833d/lessons/e5c1629c-6bf5-40c7-a07d-1a8797ffc163/
@@ -60,6 +60,9 @@ class Category(models.Model):
         unique=True
     )
 
+    def __str__(self):
+        return self.slug
+
 
 class Genre(models.Model):
     """Модель жанров произведений."""
@@ -73,6 +76,9 @@ class Genre(models.Model):
         unique=True
     )
 
+    def __str__(self):
+        return self.slug
+
 
 class Title(models.Model):
     """Модель произведений."""
@@ -83,7 +89,7 @@ class Title(models.Model):
     # Нужна будет проверка, чтобы не было в будущем
     year = models.IntegerField(
         verbose_name='Год создания произведения',
-        validators=[MaxValueValidator(timezone.now().year)]
+        validators=[MaxValueValidator(datetime.now().year)]
     )
     description = models.TextField(
         verbose_name='Описание произведения',
@@ -105,6 +111,9 @@ class Title(models.Model):
         related_name='titles',
         null=True
     )
+
+    def __str__(self):
+        return self.name
 
 
 class TitleGenre(models.Model):
