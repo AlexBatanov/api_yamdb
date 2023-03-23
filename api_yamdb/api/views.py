@@ -14,7 +14,7 @@ from user_managment.permisions import IsAdminOrReadOnly, IsOwnerIReadOnly, IsMod
 class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет для комментариев."""
     serializer_class = CommentSerializer
-    permission_classes = (IsOwnerIReadOnly, IsModerator, IsAdmin,)
+    permission_classes = (IsOwnerIReadOnly,)
 
     def get_queryset(self):
         review_id = self.kwargs.get('review_id')
@@ -30,7 +30,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     """Вьюсет для отзывов."""
     serializer_class = ReviewSerializer
-    permission_classes = (IsOwnerIReadOnly, IsModerator, IsAdmin,)
+    permission_classes = (IsOwnerIReadOnly,)
 
     def get_queryset(self):
         title_id = self.kwargs.get('title_id')
