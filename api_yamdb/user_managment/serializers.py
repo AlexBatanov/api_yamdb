@@ -1,4 +1,5 @@
 from rest_framework import serializers, status
+from django.shortcuts import get_object_or_404
 
 from reviews.models import User
 
@@ -43,10 +44,15 @@ class UsersSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = '__all__'
+        fields = ['username', 'email', 'first_name', 'last_name', 'bio', 'role']
+
+    def update(self, instance, validated_data):
+        return super().update(instance, validated_data)
     
     def validate(self, data):
-        user = User.objects.get(username=data.get('username'))
+        print('validating')
+        user = get_object_or_404(User, username=data.get('username'))
+        print('validating user')
         if user:
             raise serializers.ValidationError(
                 'Такой username уже существует.'

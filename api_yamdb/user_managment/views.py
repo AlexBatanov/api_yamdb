@@ -72,39 +72,124 @@ class TokenView(APIView):
 
             return Response({'error':'Invalid confirmation code'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(status=status.HTTP_400_BAD_REQUEST)
-from rest_framework import pagination
 
-class UserList(generics.ListCreateAPIView):
-    permission_classes = [IsAdmin]
+class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
-    pagination_class = pagination.LimitOffsetPagination
+    permission_classes = [permissions.IsAuthenticated]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.action == 'list':
+            queryset = queryset.order_by('id')
+            return queryset
 
-class UserDetail(generics.RetrieveUpdateDestroyAPIView):
-    lookup_field = 'username'
-    queryset = User.objects.all()
-    serializer_class = UsersSerializer
-    permission_classes = [IsAdmin]
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        print('ok')
+        serializer.is_valid()
+        print('ok')
+        if User.objects.filter(username=request.data['username']).exists():
+            return Response({'username': 'This username is already in use.'}, status=status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(email=request.data['email']).exists():
+            return Response({'email': 'This email is already in use.'}, status=status.HTTP_400_BAD_REQUEST)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-    def put(self, request, *args, **kwargs):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-    
-    def get(self, request, *args, **kwargs):
-        if kwargs.get('username') == 'me':
-            instance = User.objects.get(username=request.user.username)
+    def get_object(self):
+        name = self.request.parser_context['kwargs']['pk']
+
+        if name == 'me':
+            instance = User.objects.get(username=self.request.user.username)
+            print(instance)
         else:
-            instance = User.objects.get(username=kwargs.get('username'))
+            instance = User.objects.get(username=name)
+        serializer = self.get_serializer(instance)
+
+        return serializer.data
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
     
-    def patch(self, request, *args, **kwargs):
-        print(request.data)
-        if kwargs.get('username') == 'me':
-            # instance = User.objects.get(username=request.user.username)
-            serializer = self.get_serializer(request.data)
-            return Response(serializer.data)
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    def update(self, request, *args, **kwargs):
+        name = self.get_object().get('username')
+        instance = User.objects.get(username=name)
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+        # return serializer.data
+        # if 'email' in request.data:
+        #     if User.objects.filter(email=request.data['email']).exclude(username=instance.username).exists():
+        #         return Response({'email': 'This email is already in use.'}, status=status.HTTP_400_BAD_REQUEST)
+        # if 'username' in request.data:
+        #     if User.objects.filter(username=request.data['username']).exclude(username=instance.username).exists():
+        #         return Response({'username': 'This username is already in use.'}, status=status.HTTP_400_BAD_REQUEST)
+        # self.perform_update(serializer)
+        # return Response(serializer.data)
+    
+    # def update(self, request, *args, **kwargs):
+    #     name = self.get_object().get('username')
+    #     # print(instance)
+    #     user = User.objects.get(username=name)
+    #     print(user)
+    #     serializer = self.get_serializer(data=request.data, instance=user)
+    #     print(serializer)
+    #     serializer.is_valid()
+    #     serializer.save()
+    #     self.perform_update(serializer)
+    #     return serializer.data
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    # def get_my_account(self, request):
+    #     serializer = self.get_serializer(request.user)
+    #     return Response(serializer.data)
+
+    # def update_my_account(self, request, *args, **kwargs):
+    #     partial = kwargs.pop('partial', False)
+    #     instance = request.user
+    #     serializer = self.get_serializer(instance, data=request.data, partial=partial)
+    #     serializer.is_valid(raise_exception=True)
+    #     self.perform_update(serializer)
+    #     return Response(serializer.data)
+
+# class UserList(generics.ListCreateAPIView):
+#     permission_classes = [IsAdmin]
+#     queryset = User.objects.all()
+#     serializer_class = UsersSerializer
+
+
+# class UserDetail(generics.RetrieveUpdateDestroyAPIView):
+#     lookup_field = 'username'
+#     queryset = User.objects.all()
+#     serializer_class = UsersSerializer
+#     permission_classes = [IsAdmin]
+
+#     def put(self, request, *args, **kwargs):
+#         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    
+#     def get(self, request, *args, **kwargs):
+#         if kwargs.get('username') == 'me':
+#             instance = User.objects.get(username=request.user.username)
+#         else:
+#             instance = User.objects.get(username=kwargs.get('username'))
+#         serializer = self.get_serializer(instance)
+#         return Response(serializer.data)
+    
+#     def patch(self, request, *args, **kwargs):
+#         print(request.data)
+#         if kwargs.get('username') == 'me':
+#             # instance = User.objects.get(username=request.user.username)
+#             serializer = self.get_serializer(request.data)
+#             return Response(serializer.data)
+#         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
     
 
 # class UserViewSet(APIView):
