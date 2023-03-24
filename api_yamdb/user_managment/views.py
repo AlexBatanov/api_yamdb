@@ -1,11 +1,12 @@
 from django.core.mail import send_mail
 from django.conf import settings
+from django.http import Http404
 from rest_framework import permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import viewsets
-from rest_framework import generics
+from rest_framework.decorators import action
 
 from .serializers import AuthSerializer, UsersSerializer
 from .permisions import IsAdmin, IsOwnerIReadOnly
@@ -76,7 +77,7 @@ class TokenView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [IsAdmin]
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -84,18 +85,30 @@ class UserViewSet(viewsets.ModelViewSet):
             queryset = queryset.order_by('id')
             return queryset
 
+    # @actions(methods=['post'], detail=True)
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        print('ok')
-        serializer.is_valid()
-        print('ok')
-        if User.objects.filter(username=request.data['username']).exists():
+        serializer.is_valid(raise_exception=True)
+
+        email = request.data.get('email')
+        username = request.data.get('username')
+
+        if email and len(email) > 254:
+            return Response({'email': 'email не должен привышать 254 символов.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if username and len(username) > 150:
+            return Response({'username': 'username не должен привышать 150 символов.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if User.objects.filter(username=request.data.get('username')).exists():
             return Response({'username': 'This username is already in use.'}, status=status.HTTP_400_BAD_REQUEST)
-        if User.objects.filter(email=request.data['email']).exists():
+        
+        if User.objects.filter(email=request.data.get('email')).exists():
             return Response({'email': 'This email is already in use.'}, status=status.HTTP_400_BAD_REQUEST)
+        
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
 
     def get_object(self):
         name = self.request.parser_context['kwargs']['pk']
@@ -104,23 +117,29 @@ class UserViewSet(viewsets.ModelViewSet):
             instance = User.objects.get(username=self.request.user.username)
             print(instance)
         else:
-            instance = User.objects.get(username=name)
+            try:
+                instance = User.objects.get(username=name)
+            except Exception as e:
+                raise Http404
+            
         serializer = self.get_serializer(instance)
 
         return serializer.data
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+    # def retrieve(self, request, *args, **kwargs):
+    #     instance = self.get_object()
+    #     serializer = self.get_serializer(instance)
+    #     return Response(serializer.data)
     
     def update(self, request, *args, **kwargs):
         name = self.get_object().get('username')
         instance = User.objects.get(username=name)
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        request.data['role'] = request.user.role
+        serializer = self.get_serializer(instance=instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+    
         # return serializer.data
         # if 'email' in request.data:
         #     if User.objects.filter(email=request.data['email']).exclude(username=instance.username).exists():
@@ -144,9 +163,14 @@ class UserViewSet(viewsets.ModelViewSet):
     #     return serializer.data
 
     def destroy(self, request, *args, **kwargs):
+        if self.request.parser_context['kwargs']['pk'] == 'me':
+            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
         instance = self.get_object()
-        self.perform_destroy(instance)
+        self.perform_destroy(User.objects.get(username=instance['username']))
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    # def retrieve(self, request, *args, **kwargs):
+    #     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     # def get_my_account(self, request):
     #     serializer = self.get_serializer(request.user)
