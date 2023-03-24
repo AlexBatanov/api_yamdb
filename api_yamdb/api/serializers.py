@@ -1,9 +1,13 @@
 from datetime import datetime
 
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
-from reviews.models import Category, Comment, Genre, Title, Review, User
+from reviews.models import Category, Comment, Genre, Title, Review
+
+
+User = get_user_model()
 
 
 class CategorySerializer(serializers.ModelSerializer):
