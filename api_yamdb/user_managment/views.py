@@ -1,3 +1,5 @@
+import re
+
 from django.core.mail import send_mail
 from django.conf import settings
 from django.http import Http404
@@ -6,11 +8,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import viewsets
-from rest_framework.decorators import action
+from rest_framework import filters, viewsets
 
 from .serializers import AuthSerializer, UsersSerializer
-from .permisions import IsAdmin, IsOwnerIReadOnly
+from .permisions import IsAdmin
 from reviews.models import User
+from .helper import is_valid_username
+
+
+PATTERN = r'^[\\w.@+-]+\\z'
 
 class RegistrationView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -22,6 +28,9 @@ class RegistrationView(APIView):
 
         if request.data.get('username') == 'me':
             return Response({'error: me запрещено для username'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # if not is_valid_username(request.data.get('username')):
+        #     return Response({'error: username недопустимые симолы'}, status=status.HTTP_400_BAD_REQUEST)
         
         if not user and not email:
             if serializer.is_valid():
@@ -91,6 +100,8 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
     permission_classes = [IsAdmin]
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -104,12 +115,21 @@ class UserViewSet(viewsets.ModelViewSet):
 
         email = request.data.get('email')
         username = request.data.get('username')
+        first_name = request.data.get('first_name')
+        last_name = request.data.get('last_name')
+
+        # if not is_valid_username(request.data.get('username')):
+        #     return Response({'username: недопустимые симолы в username'}, status=status.HTTP_400_BAD_REQUEST)
 
         if email and len(email) > 254:
             return Response({'email': 'email не должен привышать 254 символов.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        if username and len(username) > 150:
-            return Response({'username': 'username не должен привышать 150 символов.'}, status=status.HTTP_400_BAD_REQUEST)
+        for name in (first_name, last_name, username):
+            if name and 1 < len(name) > 150:
+                return Response({'error': f'{name} не должен привышать 150 символов.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+        # if username and len(username) > 150:
+        #     return Response({'username': 'username не должен привышать 150 символов.'}, status=status.HTTP_400_BAD_REQUEST)
         
         if User.objects.filter(username=request.data.get('username')).exists():
             return Response({'username': 'This username is already in use.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -145,6 +165,18 @@ class UserViewSet(viewsets.ModelViewSet):
     
     def update(self, request, *args, **kwargs):
         name = self.get_object().get('username')
+        email = request.data.get('email')
+        username = request.data.get('username')
+        first_name = request.data.get('first_name')
+        last_name = request.data.get('last_name')
+
+        if email and len(email) > 254:
+            return Response({'email': 'email не должен привышать 254 символов.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        for name in (first_name, last_name, username):
+            if name and len(name) > 150:
+                return Response({'error': f'{name} не должен привышать 150 символов.'}, status=status.HTTP_400_BAD_REQUEST)
+            
         instance = User.objects.get(username=name)
         request.data['role'] = request.user.role
         serializer = self.get_serializer(instance=instance, data=request.data, partial=True)

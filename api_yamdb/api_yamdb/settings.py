@@ -126,7 +126,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10
 }
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=90)
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=360)
 }
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
