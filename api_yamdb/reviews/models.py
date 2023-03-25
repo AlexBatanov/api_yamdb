@@ -162,6 +162,9 @@ class Review(models.Model):
         auto_now_add=True
     )
 
+    class Meta:
+        unique_together = ('title', 'author')
+
     def __str__(self):
         return self.text
 

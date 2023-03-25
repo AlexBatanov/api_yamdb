@@ -68,15 +68,18 @@ class ReviewSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault()
     )
 
-    class Meta:
+    class Meta:    
         fields = '__all__'
+        read_only_fields = ('title',)
         model = Review
+
 #        validators = [
 #            UniqueTogetherValidator(
 #                queryset=Review.objects.all(),
 #                fields=('author', 'title',)
 #            )
 #        ]
+
     def validate(self, data):
         author = self.context.get('request').user
         title_id = self.context.get('view').kwargs.get('title_id')
