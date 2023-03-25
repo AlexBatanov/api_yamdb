@@ -1,4 +1,5 @@
 from datetime import datetime
+from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
@@ -10,7 +11,7 @@ class CategorySerializer(serializers.ModelSerializer):
     """Сериалайзер для категорий."""
 
     class Meta:
-        fields = '__all__'
+        fields = ('name', 'slug')
         model = Category
 
 
@@ -18,7 +19,7 @@ class GenreSerializer(serializers.ModelSerializer):
     """Сериализатор для жанров."""
 
     class Meta:
-        fields = '__all__'
+        fields = ('name', 'slug')
         model = Genre
 
 
@@ -70,12 +71,20 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Review
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=['author', 'title']
-            )
-        ]
+#        validators = [
+#            UniqueTogetherValidator(
+#                queryset=Review.objects.all(),
+#                fields=('author', 'title',)
+#            )
+#        ]
+    def validate(self, data):
+        author = self.context.get('request').user
+        title_id = self.context.get('view').kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        if self.context.get('request').method == 'POST':
+            if Review.objects.filter(title=title, author=author).exists():
+                raise serializers.ValidationError('Вы уже создавали отзыв.')
+        return data
 
 
 class UserSerializer(serializers.ModelSerializer):
