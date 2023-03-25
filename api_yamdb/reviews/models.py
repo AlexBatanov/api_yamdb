@@ -23,6 +23,7 @@ class User(AbstractUser):
     # переопределяем, т.к. в стандартной модели поле email - optional
     email = models.EmailField(
         max_length=254,
+        unique=True,
         verbose_name='E-mail пользователя')
     bio = models.TextField(
         verbose_name='Биография пользователя',
@@ -47,6 +48,9 @@ class User(AbstractUser):
                 name="username shouldn't be 'me'"
             )
         ]
+    
+    def __str__(self):
+        return self.username
 
 
 class Category(models.Model):
@@ -61,6 +65,9 @@ class Category(models.Model):
         unique=True
     )
 
+    def __str__(self):
+        return self.name
+
 
 class Genre(models.Model):
     """Модель жанров произведений."""
@@ -73,6 +80,9 @@ class Genre(models.Model):
         verbose_name='Slug жанра произведения',
         unique=True
     )
+
+    def __str__(self):
+        return self.name
 
 
 class Title(models.Model):
@@ -106,6 +116,9 @@ class Title(models.Model):
         related_name='titles',
         null=True
     )
+
+    def __str__(self):
+        return self.name
 
 
 class TitleGenre(models.Model):
@@ -149,6 +162,9 @@ class Review(models.Model):
         auto_now_add=True
     )
 
+    def __str__(self):
+        return self.text
+
 
 class Comment(models.Model):
     """Модель комментариев на отзывы."""
@@ -171,3 +187,6 @@ class Comment(models.Model):
         verbose_name='Дата и время создания коммента',
         auto_now_add=True
     )
+
+    def __str__(self):
+        return self.text
