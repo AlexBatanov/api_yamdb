@@ -1,3 +1,5 @@
+import re
+
 from rest_framework import serializers, status
 from django.shortcuts import get_object_or_404
 
@@ -46,6 +48,12 @@ class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'email', 'first_name', 'last_name', 'bio', 'role']
+
+    def validate_username(self, username):
+        pattern = r'^[a-zA-Z0-9.@_\\+\\-\\|]'
+        if bool(re.match(pattern, username)):
+            return username
+        raise serializers.ValidationError('недопустимые символы')
 
     # def update(self, instance, validated_data):
     #     return super().update(instance, validated_data)

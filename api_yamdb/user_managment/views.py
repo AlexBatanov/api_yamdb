@@ -1,6 +1,7 @@
 import re
 
 from django.core.mail import send_mail
+from django.shortcuts import get_object_or_404
 from django.conf import settings
 from django.http import Http404
 from rest_framework import permissions, status
@@ -173,12 +174,13 @@ class UserViewSet(viewsets.ModelViewSet):
         if email and len(email) > 254:
             return Response({'email': 'email не должен привышать 254 символов.'}, status=status.HTTP_400_BAD_REQUEST)
         
-        for name in (first_name, last_name, username):
-            if name and len(name) > 150:
-                return Response({'error': f'{name} не должен привышать 150 символов.'}, status=status.HTTP_400_BAD_REQUEST)
-            
+        for field in (first_name, last_name, username):
+            if field and len(field) > 150:
+                return Response({'error': f'{field} не должен привышать 150 символов.'}, status=status.HTTP_400_BAD_REQUEST)
+
         instance = User.objects.get(username=name)
-        request.data['role'] = request.user.role
+        if request.user.role != 'admin':
+            request.data['role'] = request.user.role
         serializer = self.get_serializer(instance=instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
