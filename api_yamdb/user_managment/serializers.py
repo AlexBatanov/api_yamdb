@@ -9,36 +9,37 @@ class AuthSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'email']
     
-    def validate(self, data):
-        if 3 < len(data['username']) > 150:
-            raise serializers.ValidationError(
-                'username пользователя должно содержать не менее 3 и не более 254 символов.'
-                )
+    # def validate(self, data):
+    #     print('vhod')
+    #     if 3 < len(data['username']) > 150:
+    #         raise serializers.ValidationError(
+    #             'username пользователя должно содержать не менее 3 и не более 254 символов.'
+    #             )
 
-        if 3 < len(data['email']) > 254:
-            raise serializers.ValidationError(
-                'email электронной почты должен содержать не менее 5 и не более 254 символов.'
-                )
-        
-        email = User.objects.filter(email=data['email']).exists()
-        user = User.objects.filter(username=data['username']).first()
+    #     if 3 < len(data['email']) > 254:
+    #         raise serializers.ValidationError(
+    #             'email электронной почты должен содержать не менее 5 и не более 254 символов.'
+    #             )
 
-        if email and not user:
-            raise serializers.ValidationError(
-                'Такой email уже существует.'
-                )
+    #     email = User.objects.filter(email=data['email']).first()
+    #     user = User.objects.filter(username=data['username']).first()
+
+    #     if email and not user:
+    #         raise serializers.ValidationError(
+    #             'Такой email уже существует.'
+    #             )
         
-        if not email and user:
-            raise serializers.ValidationError(
-                'Такой username уже существует.'
-                )
+    #     if not email and user:
+    #         raise serializers.ValidationError(
+    #             'Такой username уже существует.'
+    #             )
         
-        if user and user.email != data['email']:
-            raise serializers.ValidationError(
-                'не верный email.'
-                )
+    #     if user and user.email != data['email']:
+    #         raise serializers.ValidationError(
+    #             'не верный email.'
+    #             )
         
-        return data
+    #     return data
     
 class UsersSerializer(serializers.ModelSerializer):
     

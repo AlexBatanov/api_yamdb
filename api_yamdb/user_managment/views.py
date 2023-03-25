@@ -17,9 +17,13 @@ class RegistrationView(APIView):
 
     def post(self, request):
         user = User.objects.filter(username=request.data.get('username')).first()
+        email = User.objects.filter(email=request.data.get('email')).first()
         serializer = AuthSerializer(data=request.data)
+
+        if request.data.get('username') == 'me':
+            return Response({'error: me запрещено для username'}, status=status.HTTP_400_BAD_REQUEST)
         
-        if not user:
+        if not user and not email:
             if serializer.is_valid():
                 user = serializer.save()
 
@@ -35,16 +39,25 @@ class RegistrationView(APIView):
 
                 return Response(data=request.data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        confirmation_code = '123456' #Сделать рандомный ключ
-        email_message = f'Your confirmation code is: {confirmation_code}'
-        send_mail(
-            'Confirmation Code',
-            email_message,
-            settings.EMAIL_HOST_USER,
-            [user.email],
-            fail_silently=False,
-                )
-        return Response(data=request.data, status=status.HTTP_200_OK)
+        
+        if not user and email:
+            return Response({'error: email занят'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not email and user:
+            return Response({'error: username занят'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if user.email == email.email:
+            confirmation_code = '123456' #Сделать рандомный ключ
+            email_message = f'Your confirmation code is: {confirmation_code}'
+            send_mail(
+                'Confirmation Code',
+                email_message,
+                settings.EMAIL_HOST_USER,
+                [user.email],
+                fail_silently=False,
+                    )
+            return Response(data=request.data, status=status.HTTP_200_OK)
+        return Response({'error: username и email заняты'}, status=status.HTTP_400_BAD_REQUEST)
 
 class TokenView(APIView):
 
@@ -85,7 +98,6 @@ class UserViewSet(viewsets.ModelViewSet):
             queryset = queryset.order_by('id')
             return queryset
 
-    # @actions(methods=['post'], detail=True)
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
