@@ -2,11 +2,19 @@
 # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.annotate
 
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, viewsets
+from rest_framework import filters, viewsets, status
+from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Avg
 
-from .serializers import CategorySerializer, GenreSerializer, TitleSerializer, CommentSerializer, ReviewSerializer
+from .serializers import (
+    CategorySerializer,
+    GenreSerializer,
+    TitleSerializerForRead,
+    TitleSerializerForChange,
+    CommentSerializer,
+    ReviewSerializer
+)
 from reviews.models import Category, Genre, Title, Review
 from user_managment.permisions import IsAdminOrReadOnly, IsOwnerIReadOnly, IsModerator, IsAdmin
 
@@ -66,7 +74,11 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all().annotate(
         rating = Avg('reviews__score')
     )
-    serializer_class = TitleSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
     permission_classes = (IsAdminOrReadOnly,)
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return TitleSerializerForRead
+        return TitleSerializerForChange
