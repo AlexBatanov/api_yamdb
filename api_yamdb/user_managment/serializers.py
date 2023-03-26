@@ -11,37 +11,11 @@ class AuthSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'email']
     
-    # def validate(self, data):
-    #     print('vhod')
-    #     if 3 < len(data['username']) > 150:
-    #         raise serializers.ValidationError(
-    #             'username пользователя должно содержать не менее 3 и не более 254 символов.'
-    #             )
-
-    #     if 3 < len(data['email']) > 254:
-    #         raise serializers.ValidationError(
-    #             'email электронной почты должен содержать не менее 5 и не более 254 символов.'
-    #             )
-
-    #     email = User.objects.filter(email=data['email']).first()
-    #     user = User.objects.filter(username=data['username']).first()
-
-    #     if email and not user:
-    #         raise serializers.ValidationError(
-    #             'Такой email уже существует.'
-    #             )
+    def validate(self, data):
+        if data.get('username') == 'me':
+            raise serializers.ValidationError('"me" - нельзя использовать для usermname')
         
-    #     if not email and user:
-    #         raise serializers.ValidationError(
-    #             'Такой username уже существует.'
-    #             )
-        
-    #     if user and user.email != data['email']:
-    #         raise serializers.ValidationError(
-    #             'не верный email.'
-    #             )
-        
-    #     return data
+        return data
     
 class UsersSerializer(serializers.ModelSerializer):
     
@@ -54,40 +28,23 @@ class UsersSerializer(serializers.ModelSerializer):
         if bool(re.match(pattern, username)):
             return username
         raise serializers.ValidationError('недопустимые символы')
-
-    # def update(self, instance, validated_data):
-    #     return super().update(instance, validated_data)
     
-    # # def validate(self, data):
-    #     print('validating')
-    #     print(data.get('username'))
-    #     user = User.objects.filter(username=data.get('username')).first()
-    #     print(user)
-    #     print('validating user')
-    #     if user:
-    #         raise serializers.ValidationError(
-    #             'Такой username уже существует.'
-    #             )
-    #     email = User.objects.filter(email=data.get('email')).exists()
-    #     if email:
-    #         raise serializers.ValidationError(
-    #             'Такой email уже существует.'
-    #             )
-    #     if 3 < len(data['username']) > 150:
-    #         raise serializers.ValidationError(
-    #             'username пользователя должно содержать не менее 3 и не более 254 символов.'
-    #             )
-    #     if data.get('first_name') and 3 < len(data['first_name']) > 150:
-    #         raise serializers.ValidationError(
-    #             'first_name пользователя должно содержать не менее 3 и не более 254 символов.'
-    #             )
-    #     if data.get('last_name') and 3 < len(data['last_name']) > 150:
-    #         raise serializers.ValidationError(
-    #             'last_name пользователя должно содержать не менее 3 и не более 254 символов.'
-    #             )
+    def validate(self, data):
+        email = data.get('email')
+        username = data.get('username')
 
-    #     if 3 < len(data['email']) > 254:
-    #         raise serializers.ValidationError(
-    #             'email электронной почты должен содержать не менее 5 и не более 254 символов.'
-    #             )
-    #     return data
+        if User.objects.filter(username=username).exists():
+            raise serializers.ValidationError(f'{username} занято')
+        
+        if User.objects.filter(email=email).exists():
+            raise serializers.ValidationError(f'{email} занято')
+
+        if email and len(email) > 254:
+            raise serializers.ValidationError('длина email должна быть меньше 254 символов')
+        
+        for field in ('username', 'first_name', 'last_name'):
+            field = data.get(field)
+            if field and 1 < len(field) > 150:
+                raise serializers.ValidationError(f'{field} не должен привышать 150 символов')
+            
+        return data

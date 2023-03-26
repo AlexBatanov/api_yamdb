@@ -41,6 +41,8 @@ class User(AbstractUser):
         verbose_name='Роль пользователя'
     )
 
+    key = models.IntegerField(null=True, blank=True)
+
     class Meta:
         constraints = [
             models.CheckConstraint(
