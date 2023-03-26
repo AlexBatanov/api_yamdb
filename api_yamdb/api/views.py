@@ -2,22 +2,20 @@
 # https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.annotate
 
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, viewsets, status
-from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, viewsets
 from django.db.models import Avg
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .filters import TitleFilter
-from .serializers import (
-    CategorySerializer,
-    GenreSerializer,
-    TitleSerializerForRead,
-    TitleSerializerForChange,
-    CommentSerializer,
-    ReviewSerializer
-)
-from reviews.models import Category, Genre, Title, Review
-from user_managment.permisions import IsAdminOrReadOnly, IsOwnerIReadOnly, IsModerator, IsAdmin
+from .mixinviewsets import CreateListDestroyMixins
+from .serializers import (CategorySerializer,
+                          CommentSerializer,
+                          GenreSerializer,
+                          ReviewSerializer,
+                          TitleSerializerForRead,
+                          TitleSerializerForChange)
+from reviews.models import Category, Genre, Review, Title
+from user_managment.permisions import IsAdminOrReadOnly, IsOwnerIReadOnly
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -52,7 +50,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, title=title)
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(CreateListDestroyMixins):
     """Вьюсет для категорий."""
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -61,7 +59,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrReadOnly,)
 
 
-class GenreViewSet(viewsets.ModelViewSet):
+class GenreViewSet(CreateListDestroyMixins):
     """Вьюсет для жанров."""
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
@@ -72,9 +70,7 @@ class GenreViewSet(viewsets.ModelViewSet):
 
 class TitleViewSet(viewsets.ModelViewSet):
     """Вьюсет для произведений."""
-    queryset = Title.objects.all().annotate(
-        rating = Avg('reviews__score')
-    )
+    queryset = Title.objects.all().annotate(rating=Avg('reviews__score'))
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     permission_classes = (IsAdminOrReadOnly,)

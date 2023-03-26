@@ -1,5 +1,4 @@
 from rest_framework import permissions
-
 from reviews.models import ADMIN, MODERATOR
 
 
@@ -20,7 +19,7 @@ class IsOwnerIReadOnly(permissions.BasePermission):
             request.method in permissions.SAFE_METHODS
             or request.user.is_authenticated
         )
-    
+
 
 class IsModerator(permissions.BasePermission):
     """Модератор может удалять и редактировать любые отзывы и комментарии"""
@@ -35,7 +34,8 @@ class IsModerator(permissions.BasePermission):
             request.method in permissions.SAFE_METHODS
             or request.user.is_authenticated
         )
-    
+
+
 class IsAdmin(permissions.BasePermission):
     """Полная свобода действий"""
 
@@ -70,7 +70,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         return (
             request.method in permissions.SAFE_METHODS
             or (request.user.is_authenticated and (
-                request.user.role == ADMIN 
+                request.user.role == ADMIN
                 or request.user.is_superuser
             ))
         )

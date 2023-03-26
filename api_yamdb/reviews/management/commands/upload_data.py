@@ -10,9 +10,8 @@ import os
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
-
 from reviews.models import (Category, Comment, Genre,
-                            TitleGenre, Review, Title, User)
+                            Review, TitleGenre, Title, User)
 
 
 class Command(BaseCommand):

@@ -1,16 +1,18 @@
-import re, random
+import random
+import re
 
-from django.core.mail import send_mail
 from django.conf import settings
-
+from django.core.mail import send_mail
 
 CONFIRMATION_CODE = random.randint(1000, 9999)
+
 
 def is_valid_username(username):
     pattern = r'^[a-zA-Z0-9.@_\\+\\-\\|]'
     print(username)
     print(re.match(pattern, username))
     return bool(re.match(pattern, username))
+
 
 def send_massege(user):
     """

@@ -1,10 +1,9 @@
 from datetime import datetime
-from django.shortcuts import get_object_or_404
 
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import UniqueTogetherValidator
-from reviews.models import Category, Comment, Genre, Title, Review, User
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -52,13 +51,13 @@ class TitleSerializerForChange(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Title
-    
+
     def validate_year(self, value):
         if value > datetime.now().year:
             raise serializers.ValidationError(
                 'Год создания не может быть больше текущего!')
         return value
-    
+
 
 class TitleSerializerForRead(serializers.ModelSerializer):
     """Сериалайзер для чтения названий произведений."""
@@ -79,7 +78,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault()
     )
 
-    class Meta:    
+    class Meta:
         fields = '__all__'
         read_only_fields = ('title',)
         model = Review
