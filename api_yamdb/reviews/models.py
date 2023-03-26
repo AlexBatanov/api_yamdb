@@ -166,12 +166,12 @@ class Review(models.Model):
 
     class Meta:
         unique_together = ('title', 'author')
-#        constraints = [
-#            models.UniqueConstraint(
-#                fields=['title', 'author'],
-#                name='unique_review'
-#            )
-#        ]
+    #    constraints = [
+    #        models.UniqueConstraint(
+    #            fields=['title', 'author'],
+    #            name='unique_review'
+    #        )
+    #    ]
 
     def __str__(self):
         return self.text

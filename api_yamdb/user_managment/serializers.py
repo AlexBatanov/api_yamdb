@@ -18,7 +18,6 @@ class AuthSerializer(serializers.ModelSerializer):
         return data
     
 class UsersSerializer(serializers.ModelSerializer):
-    
     class Meta:
         model = User
         fields = ['username', 'email', 'first_name', 'last_name', 'bio', 'role']
@@ -48,3 +47,7 @@ class UsersSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(f'{field} не должен привышать 150 символов')
             
         return data
+    
+    # def update(self, instance, validated_data):
+    #     print(3)
+    #     return super().update(instance, **validated_data)

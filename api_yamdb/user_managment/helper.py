@@ -26,3 +26,4 @@ def send_massege(user):
         fail_silently=False,
     )
     user.key = CONFIRMATION_CODE
+    user.save()

@@ -66,6 +66,7 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdmin]
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
+    http_method_names = ('get', 'post', 'patch', 'delete')
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -85,31 +86,29 @@ class UserViewSet(viewsets.ModelViewSet):
                 instance = User.objects.get(username=name)
             except Exception:
                 raise Http404
-            
-        serializer = self.get_serializer(instance)
 
-        return serializer.data
-
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        return instance
+    
+    def partial_update(self, request, *args, **kwargs):
         
-        if request.user.role != 'admin':
-            request.data['role'] = request.user.role
+        if kwargs.get('pk') == 'me' and request.data.get('role'):
+            return Response({'error':'нельзя изменять роль'}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = serializer(instance=instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(serializer.data)
-
+        return super().partial_update(request, *args, **kwargs)
+    
     def destroy(self, request, *args, **kwargs):
 
-        if self.request.parser_context['kwargs']['pk'] == 'me':
-            return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        if kwargs.get('pk') == 'me':
+            return Response({'error':'просите админа'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         
-        instance = self.get_object()
-        self.perform_destroy(User.objects.get(username=instance['username']))
+        return super().destroy(request, *args, **kwargs)
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    # def destroy(self, request, *args, **kwargs):
+
+    #     if self.request.parser_context['kwargs']['pk'] == 'me':
+    #         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        
+    #     instance = self.get_object()
+    #     self.perform_destroy(User.objects.get(username=instance['username']))
+
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
