@@ -53,11 +53,11 @@ class TitleSerializerForChange(serializers.ModelSerializer):
         fields = '__all__'
         model = Title
     
-#    def validate(self, data):
-#        if data['year'] > datetime.now().year:
-#            raise serializers.ValidationError(
-#                'Год создания не может быть больше текущего!')
-#        return data
+    def validate_year(self, value):
+        if value > datetime.now().year:
+            raise serializers.ValidationError(
+                'Год создания не может быть больше текущего!')
+        return value
     
 
 class TitleSerializerForRead(serializers.ModelSerializer):
@@ -83,7 +83,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('title',)
         model = Review
-
 #        validators = [
 #           UniqueTogetherValidator(
 #               queryset=Review.objects.all(),
