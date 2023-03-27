@@ -1,3 +1,4 @@
+![Изображение](https://yastatic.net/q/logoaas/v2/Яндекс.svg?circle=white&color=fff&first=black) ![Изображение](https://yastatic.net/q/logoaas/v2/Практикум.svg?color=fff)
 
 # YaMDb
 ### Описание
@@ -21,30 +22,157 @@ Python 3.9
 Django 3.2
 DRF
 JWT
-### Запуск
-- Cоздайте виртуальное окружение
+Клонировать репозиторий и перейти в него в командной строке:
+
 ```
-python -m venv venv
+git clone git@github.com:AlexBatanov/api_yamdb.git
 ```
-- Активируйте виртуальное окружение
+
 ```
-source venv/Scripts/activate
+cd api_yamdb
 ```
-- Обновите pip
+
+Cоздать и активировать виртуальное окружение:
+
 ```
-python -m pip install --upgrade pip
+python3 -m venv env
 ```
-- Установите зависимости из файла requirements.txt
+
+```
+source env/bin/activate
+```
+
+Установить зависимости из файла requirements.txt:
+
+```
+python3 -m pip install --upgrade pip
+```
+
 ```
 pip install -r requirements.txt
 ```
-- Выполните миграции
+
+Выполнить миграции:
+
 ```
-python manage.py migrate
+python3 manage.py migrate
 ```
-- Запустите проект
+
+Запустить проект:
+
 ```
-python manage.py runserver
+python3 manage.py runserver
+```
+Открыть документацию:
+
+```
+http://127.0.0.1:8000/redoc/
+```
+***
+
+### Регистрация:
+
+```
+POST http://127.0.0.1:8000/api/v1/auth/signup/
+```
+тело запроса:
+```
+{
+    "email": "user@example.com",
+    "username": "string"
+}
+```
+после запроса на указанную почту придет ключ, для получения токена
+
+### Получение JWT-токена
+```
+http://127.0.0.1:8000/api/v1/auth/token/
+```
+тело запроса:
+```
+{
+    "username": "string",
+    "confirmation_code": "string"
+}
+```
+### Другие примеры запросов:
+
+
+#### Получение списка всех произведений:
+
+```
+GET http://127.0.0.1:8000/api/v1/titles/
+```
+вернет ответ в формате JSON:
+```
+{
+  "count": 0,
+  "next": "string",
+  "previous": "string",
+  "results": [
+    {
+      "id": 0,
+      "name": "string",
+      "year": 0,
+      "rating": 0,
+      "description": "string",
+      "genre": [
+        {
+          "name": "string",
+          "slug": "string"
+        }
+      ],
+      "category": {
+        "name": "string",
+        "slug": "string"
+      }
+    }
+  ]
+}
+```
+
+#### Частичное обновление информации о произведении:
+
+```
+PATCH http://127.0.0.1:8000/api/v1/titles/{titles_id}/
+```
+тело запроса:
+```
+{
+  "name": "string",
+  "year": 0,
+  "description": "string",
+  "genre": [
+    "string"
+  ],
+  "category": "string"
+}
+```
+
+#### Добавление нового отзыва:
+
+```
+POST http://127.0.0.1:8000/api/v1/titles/{title_id}/reviews/
+```
+тело запроса:
+```
+{
+    "text": "string",
+    "score": 1
+}
+```
+
+#### Частичное обновление отзыва по id:
+
+```
+PUTCH http://127.0.0.1:8000/api/v1/titles/{title_id}/reviews/{review_id}/
+```
+тело запроса:
+```
+{
+  "text": "string",
+  "score": 1
+}
 ```
 ### Авторы
 Студенты Яндекс Практикум программы Python-разработчик плюс, когорта 19+
