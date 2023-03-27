@@ -1,6 +1,3 @@
-# https://docs.djangoproject.com/en/4.1/topics/db/aggregation/
-# https://docs.djangoproject.com/en/4.1/ref/models/querysets/#django.db.models.query.QuerySet.annotate
-
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, viewsets
 from django.db.models import Avg

@@ -1,10 +1,3 @@
-# https://docs.djangoproject.com/en/3.2/howto/custom-management-commands/
-# https://egorovegor.ru/python-django-custom-command/
-# https://docs.python.org/3/library/os.path.html
-# https://pythonworld.ru/moduli/modul-csv.html
-# https://bestprogrammer.ru/programmirovanie-i-razrabotka/kak-ispolzovat-python-csv-dictreader
-# https://stackoverflow.com/questions/2459979/how-to-import-csv-data-into-django-models
-
 import csv
 import os
 
