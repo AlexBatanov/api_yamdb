@@ -1,17 +1,12 @@
 import random
-import re
 
 from django.conf import settings
 from django.core.mail import send_mail
 
+from reviews.models import User
+
+
 CONFIRMATION_CODE = random.randint(1000, 9999)
-
-
-def is_valid_username(username):
-    pattern = r'^[a-zA-Z0-9.@_\\+\\-\\|]'
-    print(username)
-    print(re.match(pattern, username))
-    return bool(re.match(pattern, username))
 
 
 def send_massege(user):
@@ -19,6 +14,7 @@ def send_massege(user):
     Оптправляет на почту сообщение с генерированым ключом.
     присваивает ключ к юзеру
     """
+
     email_message = f'Your confirmation code is: {CONFIRMATION_CODE}'
     send_mail(
         'Confirmation Code',
@@ -29,3 +25,20 @@ def send_massege(user):
     )
     user.key = CONFIRMATION_CODE
     user.save()
+
+
+def get_users(data):
+    """
+    возвращает два оюъекта типа User:
+
+    -фильтрованый по email;
+
+    -фильтрованый по username;
+    """
+
+    user_filter_name = User.objects.filter(
+        username=data.get('username')).first()
+    user_filter_email = User.objects.filter(
+        email=data.get('email')).first()
+
+    return (user_filter_name, user_filter_email)

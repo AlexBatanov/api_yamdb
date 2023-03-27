@@ -1,39 +1,56 @@
-from django.http import Http404
+from django.shortcuts import get_object_or_404
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .helper import send_massege
+from .helper import send_massege, get_users
 from .permisions import IsAdmin
 from .serializers import AuthSerializer, UsersSerializer
 from reviews.models import User
 
-PATTERN = r'^[\\w.@+-]+\\z'
-
 
 class RegistrationView(APIView):
+    """
+    Регистрация пользователя с прверкой username и email на уникальность,
+    в случае успеха создает юзера и оправляет секретный ключ на почту.
+
+    Если пользователь уже существует в системе, то происходит повторная
+    отправка секретного ключа на почту.
+    """
+
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        user = User.objects.filter(username=request.data.get('username')).first()
-        email = User.objects.filter(email=request.data.get('email')).first()
-        serializer = AuthSerializer(data=request.data)
 
-        if not user and not email:
+        serializer = AuthSerializer(data=request.data)
+        user_filter_name, user_filter_email = get_users(request.data)
+
+        if not user_filter_name and not user_filter_email:
             serializer.is_valid(raise_exception=True)
             user = serializer.save()
             send_massege(user)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
-        if user and user.email == request.data.get('email'):
-            send_massege(user)
+        if (user_filter_name
+                and user_filter_name.email == request.data.get('email')):
+            send_massege(user_filter_name)
+
             return Response(data=request.data, status=status.HTTP_200_OK)
-        return Response({'error: username и email должны быть уникальны'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            {'error: username и email должны быть уникальны'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class TokenView(APIView):
+    """
+    Выдает токен для авторизации пользователя.
+
+    проверяет существование юзера и секретного ключа.
+    """
 
     permission_classes = [permissions.AllowAny]
 
@@ -46,7 +63,10 @@ class TokenView(APIView):
             user = User.objects.filter(username=username).first()
 
             if not user:
-                return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {'error': 'пользоваетель не найден'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
             if confirmation_code == user.key:
                 refresh = RefreshToken.for_user(user)
@@ -56,11 +76,22 @@ class TokenView(APIView):
                 }
                 return Response(token, status=status.HTTP_200_OK)
 
-            return Response({'error': 'Invalid confirmation code'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'не верный ключ'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    """
+    Реализация CRUD для пользователей.
+
+    переопределены методы получения, обновления и удаления,
+    для работы со своим профилем исходя из требований.
+    """
+
     queryset = User.objects.all()
     serializer_class = UsersSerializer
     permission_classes = [IsAdmin]
@@ -68,46 +99,35 @@ class UserViewSet(viewsets.ModelViewSet):
     search_fields = ('username',)
     http_method_names = ('get', 'post', 'patch', 'delete')
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
     def get_object(self):
         name = self.request.parser_context['kwargs']['pk']
 
         if name == 'me':
-            instance = User.objects.get(username=self.request.user.username)
+            instance = get_object_or_404(
+                User,
+                username=self.request.user.username
+            )
         else:
-            try:
-                instance = User.objects.get(username=name)
-            except Exception:
-                raise Http404
+            instance = get_object_or_404(User, username=name)
 
         return instance
 
     def partial_update(self, request, *args, **kwargs):
 
         if kwargs.get('pk') == 'me' and request.data.get('role'):
-            return Response({'error': 'нельзя изменять роль'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'нельзя изменять роль'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         return super().partial_update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
 
         if kwargs.get('pk') == 'me':
-            return Response({'error': 'просите админа'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            return Response(
+                {'error': 'просите админа'},
+                status=status.HTTP_405_METHOD_NOT_ALLOWED
+            )
 
         return super().destroy(request, *args, **kwargs)
-
-    # def destroy(self, request, *args, **kwargs):
-
-    #     if self.request.parser_context['kwargs']['pk'] == 'me':
-    #         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-    #     instance = self.get_object()
-    #     self.perform_destroy(User.objects.get(username=instance['username']))
-
-    #     return Response(status=status.HTTP_204_NO_CONTENT)

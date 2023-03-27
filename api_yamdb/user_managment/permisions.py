@@ -21,21 +21,6 @@ class IsOwnerIReadOnly(permissions.BasePermission):
         )
 
 
-class IsModerator(permissions.BasePermission):
-    """Модератор может удалять и редактировать любые отзывы и комментарии"""
-
-    def has_object_permission(self, request, view, obj):
-        return (
-            request.user.role == MODERATOR
-        )
-
-    def has_permission(self, request, view):
-        return (
-            request.method in permissions.SAFE_METHODS
-            or request.user.is_authenticated
-        )
-
-
 class IsAdmin(permissions.BasePermission):
     """Полная свобода действий"""
 
