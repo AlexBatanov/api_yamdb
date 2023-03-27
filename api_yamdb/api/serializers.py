@@ -3,7 +3,7 @@ from datetime import datetime
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-from reviews.models import Category, Comment, Genre, Review, Title, User
+from reviews.models import Category, Comment, Genre, Review, Title
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -91,11 +91,3 @@ class ReviewSerializer(serializers.ModelSerializer):
             if Review.objects.filter(title=title, author=author).exists():
                 raise serializers.ValidationError('Вы уже создавали отзыв.')
         return data
-
-
-class UserSerializer(serializers.ModelSerializer):
-    """Сериализатор для пользователя."""
-
-    class Meta:
-        fields = '__all__'
-        model = User
