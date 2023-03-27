@@ -55,7 +55,3 @@ class UsersSerializer(serializers.ModelSerializer):
                     f'{field} не должен привышать 150 символов')
 
         return data
-
-    # def update(self, instance, validated_data):
-    #     print(3)
-    #     return super().update(instance, **validated_data)
