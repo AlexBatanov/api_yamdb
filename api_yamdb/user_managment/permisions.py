@@ -20,6 +20,7 @@ class IsOwnerIReadOnly(permissions.BasePermission):
             or request.user.is_authenticated
         )
 
+
 class IsAdmin(permissions.BasePermission):
     """Полная свобода действий"""
 

@@ -33,12 +33,16 @@ class RegistrationView(APIView):
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
-        if user_filter_name and user_filter_name.email == request.data.get('email'):
+        if (user_filter_name
+                and user_filter_name.email == request.data.get('email')):
             send_massege(user_filter_name)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
-        
-        return Response({'error: username и email должны быть уникальны'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            {'error: username и email должны быть уникальны'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class TokenView(APIView):
@@ -59,7 +63,10 @@ class TokenView(APIView):
             user = User.objects.filter(username=username).first()
 
             if not user:
-                return Response({'error': 'пользоваетель не найден'}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {'error': 'пользоваетель не найден'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
             if confirmation_code == user.key:
                 refresh = RefreshToken.for_user(user)
@@ -69,7 +76,11 @@ class TokenView(APIView):
                 }
                 return Response(token, status=status.HTTP_200_OK)
 
-            return Response({'error': 'не верный ключ'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'не верный ключ'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -77,7 +88,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """
     Реализация CRUD для пользователей.
 
-    переопределены методы получения, обновления и удаления, 
+    переопределены методы получения, обновления и удаления,
     для работы со своим профилем исходя из требований.
     """
 
@@ -88,27 +99,35 @@ class UserViewSet(viewsets.ModelViewSet):
     search_fields = ('username',)
     http_method_names = ('get', 'post', 'patch', 'delete')
 
-
     def get_object(self):
         name = self.request.parser_context['kwargs']['pk']
 
         if name == 'me':
-            instance = get_object_or_404(User, username=self.request.user.username)
+            instance = get_object_or_404(
+                User,
+                username=self.request.user.username
+            )
         else:
             instance = get_object_or_404(User, username=name)
-       
+
         return instance
 
     def partial_update(self, request, *args, **kwargs):
 
         if kwargs.get('pk') == 'me' and request.data.get('role'):
-            return Response({'error': 'нельзя изменять роль'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'нельзя изменять роль'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         return super().partial_update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
 
         if kwargs.get('pk') == 'me':
-            return Response({'error': 'просите админа'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            return Response(
+                {'error': 'просите админа'},
+                status=status.HTTP_405_METHOD_NOT_ALLOWED
+            )
 
         return super().destroy(request, *args, **kwargs)

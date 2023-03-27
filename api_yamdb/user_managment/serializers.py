@@ -22,29 +22,15 @@ class UsersSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = [
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role'
-        ]
+        fields = ['username', 'email', 'first_name',
+                  'last_name', 'bio', 'role']
 
     def validate(self, data):
         email = data.get('email')
-        username = data.get('username')
-
-        user_filter_name, user_filter_email = get_users(data)
 
         if any(get_users(data)):
-            raise serializers.ValidationError('поля username и email должны быть  уникальными')
-
-        # if user:
-        #     raise serializers.ValidationError(f'{username} занято')
-
-        # if emaill:
-        #     raise serializers.ValidationError(f'{email} занято')
+            raise serializers.ValidationError(
+                'поля username и email должны быть  уникальными')
 
         if email and len(email) > 254:
             raise serializers.ValidationError(
