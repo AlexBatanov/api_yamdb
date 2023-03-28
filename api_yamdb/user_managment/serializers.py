@@ -1,21 +1,34 @@
+import re
+
 from rest_framework import serializers
 from reviews.models import User
+from rest_framework.validators import UniqueValidator
 
 from .helper import get_users
 
 
-class AuthSerializer(serializers.ModelSerializer):
+class AuthSerializer(serializers.Serializer):
+    email = serializers.EmailField(validators=[UniqueValidator(queryset=User.objects.all())])
+    username = serializers.CharField(validators=[UniqueValidator(queryset=User.objects.all())])
 
-    class Meta:
-        model = User
-        fields = ['username', 'email']
-
-    def validate(self, data):
-        if data.get('username') == 'me':
+    def validate_email(self, value):
+        if len(value) > 254:
             raise serializers.ValidationError(
-                '"me" - нельзя использовать для usermname')
+                'длина email должна быть меньше 254 символов')
+        return value
+        
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError('username не может быть me')
 
-        return data
+        if not re.match(r'[\w.@+-]+\Z', value):
+            raise serializers.ValidationError(
+                'поле username должно содержать только латинские буквы и цифры')
+
+        if len(value) > 150:
+            raise serializers.ValidationError(
+                'длина username должна быть меньше 150 символов')
+        return value
 
 
 class UsersSerializer(serializers.ModelSerializer):

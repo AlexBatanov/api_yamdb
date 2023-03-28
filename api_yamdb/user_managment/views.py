@@ -26,23 +26,18 @@ class RegistrationView(APIView):
         serializer = AuthSerializer(data=request.data)
         user_filter_name, user_filter_email = get_users(request.data)
 
-        if not user_filter_name and not user_filter_email:
-            serializer.is_valid(raise_exception=True)
-            user = serializer.save()
+        if serializer.is_valid():
+            user, _ = User.objects.get_or_create(**serializer.validated_data)
             send_massege(user)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
-
-        if (user_filter_name
+        elif (user_filter_name
                 and user_filter_name.email == request.data.get('email')):
             send_massege(user_filter_name)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
-
-        return Response(
-            {'error: username и email должны быть уникальны'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        else:
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TokenView(APIView):
