@@ -19,7 +19,7 @@ from .serializers import (AuthSerializer,
                           UsersSerializer)
 from api.permissions import IsAdmin
 from reviews.models import Category, Genre, Review, Title, User
-from user_managment.helpers import send_massege, get_users
+from .helpers import send_massege, get_users
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -98,16 +98,15 @@ class RegistrationView(APIView):
     def post(self, request):
 
         serializer = AuthSerializer(data=request.data)
-        user_filter_name, user_filter_email = get_users(request.data)
+        user, _ = get_users(request.data)
 
         if serializer.is_valid():
             user, _ = User.objects.get_or_create(**serializer.validated_data)
             send_massege(user)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
-        elif (user_filter_name
-                and user_filter_name.email == request.data.get('email')):
-            send_massege(user_filter_name)
+        elif (user and user.email == request.data.get('email')):
+            send_massege(user)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
         else:

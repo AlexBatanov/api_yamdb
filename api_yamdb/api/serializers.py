@@ -7,10 +7,11 @@ from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
-from user_managment.helpers import get_users
+from .helpers import get_users
 
 
 class AuthSerializer(serializers.Serializer):
+
     email = serializers.EmailField(
         validators=[UniqueValidator(queryset=User.objects.all())])
     username = serializers.CharField(
