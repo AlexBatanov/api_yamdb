@@ -33,6 +33,14 @@ class User(AbstractUser):
     )
     key = models.IntegerField(null=True, blank=True)
 
+    @property
+    def is_admin(self):
+        return self.role == ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == MODERATOR
+
     class Meta:
         constraints = [
             models.CheckConstraint(
