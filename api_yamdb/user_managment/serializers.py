@@ -1,7 +1,8 @@
 from rest_framework import serializers
+
+from .helpers import get_users
 from reviews.models import User
 
-from .helper import get_users
 
 
 class AuthSerializer(serializers.ModelSerializer):

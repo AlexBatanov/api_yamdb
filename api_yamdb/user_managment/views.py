@@ -4,9 +4,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .helper import send_massege, get_users
-from .permisions import IsAdmin
+from .helpers import send_massege, get_users
 from .serializers import AuthSerializer, UsersSerializer
+from api.permissions import IsAdmin
 from reviews.models import User
 
 
