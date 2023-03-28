@@ -6,7 +6,7 @@ from api.views import (CategoryViewSet,
                        GenreViewSet,
                        ReviewViewSet,
                        TitleViewSet)
-from user_managment.views import UserViewSet
+from .views import UserViewSet
 
 
 v1_router = DefaultRouter()
