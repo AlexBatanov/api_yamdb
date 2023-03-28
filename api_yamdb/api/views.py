@@ -89,7 +89,6 @@ class RegistrationView(APIView):
     """
     Регистрация пользователя с прверкой username и email на уникальность,
     в случае успеха создает юзера и оправляет секретный ключ на почту.
-
     Если пользователь уже существует в системе, то происходит повторная
     отправка секретного ключа на почту.
     """
@@ -101,29 +100,24 @@ class RegistrationView(APIView):
         serializer = AuthSerializer(data=request.data)
         user_filter_name, user_filter_email = get_users(request.data)
 
-        if not user_filter_name and not user_filter_email:
-            serializer.is_valid(raise_exception=True)
-            user = serializer.save()
+        if serializer.is_valid():
+            user, _ = User.objects.get_or_create(**serializer.validated_data)
             send_massege(user)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
-
-        if (user_filter_name
+        elif (user_filter_name
                 and user_filter_name.email == request.data.get('email')):
             send_massege(user_filter_name)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
-
-        return Response(
-            {'error: username и email должны быть уникальны'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        else:
+            return Response(
+                data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TokenView(APIView):
     """
     Выдает токен для авторизации пользователя.
-
     проверяет существование юзера и секретного ключа.
     """
 
@@ -162,7 +156,6 @@ class TokenView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     """
     Реализация CRUD для пользователей.
-
     переопределены методы получения, обновления и удаления,
     для работы со своим профилем исходя из требований.
     """
